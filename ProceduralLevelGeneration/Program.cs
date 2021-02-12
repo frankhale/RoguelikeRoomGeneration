@@ -15,13 +15,13 @@ namespace ProceduralLevelGeneration
 
     public class ProceduralLevelGenerator
     {
-        const int HEIGHT = 30;
+        const int HEIGHT = 40;
         const int WIDTH = 100;
 
         public ProceduralLevelGenerator()
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 30);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 40);
 
             RenderMap(rooms);
         }

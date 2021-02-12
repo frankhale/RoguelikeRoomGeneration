@@ -7,6 +7,10 @@ Working on algorithms to generate rooms for a roguelike game
   exists to work on the algorithm. This will be done when rooms can be
   connected.
 
+## Screenshot(s)
+
+![Room Generation](screenshots/rooms.png)
+
 ## Author(s)
 
 Frank Hale &lt;frankhaledevelops@gmail.com&gt;
