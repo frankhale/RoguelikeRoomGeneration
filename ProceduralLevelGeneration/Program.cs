@@ -27,6 +27,12 @@ namespace ProceduralLevelGeneration
         Horizontal
     }
 
+    //public class RoomPair
+    //{
+    //    public Rectangle Room1 { get; set; }
+    //    public Rectangle Room2 { get; set; }
+    //}
+
     public class RoomConnectionInfo
     {
         public Rectangle Room1 { get; set; }
@@ -39,13 +45,13 @@ namespace ProceduralLevelGeneration
 
     public class ProceduralLevelGenerator
     {
-        const int HEIGHT = 40;
-        const int WIDTH = 100;
+        const int HEIGHT = 25;
+        const int WIDTH = 80;
 
         public ProceduralLevelGenerator()
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 8);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 6);
 
             //RenderMap(rooms);
 
@@ -181,43 +187,39 @@ namespace ProceduralLevelGeneration
             var corridors = new List<Rectangle>();
             var roomConnectionInfos = new List<RoomConnectionInfo>();
 
-            var dominantRoomsAlreadySeen = new List<Rectangle>();
-
             foreach (var room in rooms)
             {
-                foreach (var r in rooms)
+                foreach (var r in rooms.Where(x => x != room))
                 {
-                    if (r != room)
+                    var cnx = AreRoomsConnectable(room, r);
+                    if (cnx != null)
                     {
-                        var cnx = AreRoomsConnectable(room, r);
-                        if (cnx != null)
-                        {
-                            if (!dominantRoomsAlreadySeen.Any(x => x == cnx.DominantRoom))
-                            {
-                                dominantRoomsAlreadySeen.Add(cnx.DominantRoom);
-                                roomConnectionInfos.Add(cnx);                                
-                            }
-                        }
+                        roomConnectionInfos.Add(cnx);
                     }
                 }
             }
 
-            foreach (var cnx in roomConnectionInfos)
+            var cnxGroups = roomConnectionInfos.OrderBy(x => x.DominantRoom.X).GroupBy(x => x.DominantRoom);
+
+            foreach (var cnxGroup in cnxGroups)
             {
-                Rectangle corridor = Rectangle.Empty;
-                var random = new Random();
-                var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
-
-                if (cnx.Orientation == Orientation.Vertical)
+                foreach (var cnx in cnxGroup.DistinctBy(x => x.DominantRoom))
                 {
-                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
-                }
-                else if (cnx.Orientation == Orientation.Horizontal)
-                {
-                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
-                }
+                    Rectangle corridor = Rectangle.Empty;
+                    var random = new Random();
+                    var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
 
-                corridors.Add(corridor);
+                    if (cnx.Orientation == Orientation.Vertical)
+                    {
+                        corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
+                    }
+                    else if (cnx.Orientation == Orientation.Horizontal)
+                    {
+                        corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
+                    }
+
+                    corridors.Add(corridor);
+                }
             }
 
             return corridors;
@@ -262,6 +264,19 @@ namespace ProceduralLevelGeneration
                          group item by i++ % parts into part
                          select part.AsEnumerable();
             return splits;
+        }
+
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>
+            (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            HashSet<TKey> seenKeys = new HashSet<TKey>();
+            foreach (TSource element in source)
+            {
+                if (seenKeys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
         }
     }
 
