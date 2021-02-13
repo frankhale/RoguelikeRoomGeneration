@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Numerics;
 
 namespace ProceduralLevelGeneration
 {
@@ -32,6 +31,7 @@ namespace ProceduralLevelGeneration
     {
         public Rectangle Room1 { get; set; }
         public Rectangle Room2 { get; set; }
+        public IEnumerable<int> IntersectionRange { get; set; }
         public Orientation Orientation { get; set; }
     }
 
@@ -122,17 +122,6 @@ namespace ProceduralLevelGeneration
 
         private RoomConnectionInfo AreRoomsConnectable(Rectangle room1, Rectangle room2)
         {
-            //  0,0,0,0,0,0,0,0,0,0
-            //  0,1,1,1,1,0,0,0,0,0
-            //  0,1,1,1,1,0,0,0,0,0
-            //  0,0,0,0,0,0,0,0,0,0
-            //  0,0,0,1,1,1,1,0,0,0
-            //  0,0,0,1,1,1,1,0,0,0
-            //  0,0,0,0,0,0,0,0,0,0
-            //  0,0,0,0,0,0,0,0,0,0
-            //  0,0,0,0,0,0,0,0,0,0
-            //  0,0,0,0,0,0,0,0,0,0
-
             var roomInfo1 = GetRoomInfo(room1);
             var roomInfo2 = GetRoomInfo(room2);
 
@@ -141,23 +130,24 @@ namespace ProceduralLevelGeneration
             var rangeY1 = Enumerable.Range(roomInfo1.TopLeft.Y, room1.Height);
             var rangeY2 = Enumerable.Range(roomInfo2.TopLeft.Y, room2.Height);
 
-            var verticalConnection = rangeX1.Intersect(rangeX2).Any();
-            var horizontalConnection = rangeY1.Intersect(rangeY2).Any();
+            var verticalConnection = rangeX1.Intersect(rangeX2);
+            var horizontalConnection = rangeY1.Intersect(rangeY2);
 
-
-            if (verticalConnection || horizontalConnection)
+            if (verticalConnection.Any() || horizontalConnection.Any())
             {
                 Orientation orientation = Orientation.Vertical;
+                IEnumerable<int> intersectionRange = verticalConnection;
 
-                if (horizontalConnection)
+                if (horizontalConnection.Any())
                 {
                     orientation = Orientation.Horizontal;
+                    intersectionRange = horizontalConnection;
                 }
 
                 return new RoomConnectionInfo
                 {
                     Room1 = room1,
-                    Room2 = room2,
+                    Room2 = room2,                    
                     Orientation = orientation
                 };
             }
@@ -168,11 +158,10 @@ namespace ProceduralLevelGeneration
         private List<Rectangle> GenerateCorridors(List<Rectangle> rooms)
         {
             var corridors = new List<Rectangle>();
+            var roomConnectionInfos = new List<RoomConnectionInfo>();
 
             foreach (var room in rooms)
-            {
-                var roomConnectionInfos = new List<RoomConnectionInfo>();
-
+            {                
                 foreach(var r in rooms)
                 {
                     if(r != room)
@@ -184,6 +173,11 @@ namespace ProceduralLevelGeneration
                         }
                     }
                 }
+            }            
+
+            foreach(var cnx in roomConnectionInfos)
+            {
+                // create the corridor here...
             }
 
             return corridors;
