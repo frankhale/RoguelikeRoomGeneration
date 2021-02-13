@@ -5,6 +5,18 @@ using System.Linq;
 
 namespace ProceduralLevelGeneration
 {
+    public enum Orientation
+    {
+        Vertical,
+        Horizontal
+    }
+
+    public enum RoomType
+    {
+        Room,
+        Corridor
+    }
+
     public class Dimension
     {
         public int X { get; set; }
@@ -21,18 +33,6 @@ namespace ProceduralLevelGeneration
         public Point BottomRight { get; set; }
     }
 
-    public enum Orientation
-    {
-        Vertical,
-        Horizontal
-    }
-
-    //public class RoomPair
-    //{
-    //    public Rectangle Room1 { get; set; }
-    //    public Rectangle Room2 { get; set; }
-    //}
-
     public class RoomConnectionInfo
     {
         public Rectangle Room1 { get; set; }
@@ -41,6 +41,12 @@ namespace ProceduralLevelGeneration
         public Rectangle InferiorRoom { get; set; }
         public List<int> IntersectionRange { get; set; }
         public Orientation Orientation { get; set; }
+    }
+
+    public class Room
+    {
+        public Rectangle Rectangle { get; set; }
+        public RoomType Type { get; set; }
     }
 
     public class ProceduralLevelGenerator
@@ -52,8 +58,6 @@ namespace ProceduralLevelGeneration
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
             var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 20);
-
-            //RenderMap(rooms);
 
             rooms.AddRange(GenerateCorridors(rooms));
 
@@ -95,9 +99,9 @@ namespace ProceduralLevelGeneration
             };
         }
 
-        private List<Rectangle> GenerateRooms(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight, int numRooms)
+        private List<Room> GenerateRooms(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight, int numRooms)
         {
-            var rooms = new List<Rectangle>();
+            var rooms = new List<Room>();
 
             for (int i = 0; i < numRooms; i++)
             {
@@ -107,11 +111,15 @@ namespace ProceduralLevelGeneration
                 {
                     dim = GenerateDimension(mapWidth, mapHeight, roomMaxWidth, roomMaxHeight);
                 }
-                while (rooms.Any(room => (!(dim.X > (room.X + room.Width + 2) || (dim.X + dim.Width + 2) < room.X ||
-                                          dim.Y > (room.Y + room.Height + 2) || (dim.Y + dim.Height + 2) < room.Y))));
+                while (rooms.Any(room => (!(dim.X > (room.Rectangle.X + room.Rectangle.Width + 2) || (dim.X + dim.Width + 2) < room.Rectangle.X ||
+                                          dim.Y > (room.Rectangle.Y + room.Rectangle.Height + 2) || (dim.Y + dim.Height + 2) < room.Rectangle.Y))));
 
 
-                rooms.Add(new Rectangle(dim.X, dim.Y, dim.Width, dim.Height));
+                rooms.Add(new Room
+                {
+                    Rectangle = new Rectangle(dim.X, dim.Y, dim.Width, dim.Height),
+                    Type = RoomType.Room
+                });
             }
 
             return rooms;
@@ -182,16 +190,16 @@ namespace ProceduralLevelGeneration
             return null;
         }
 
-        private List<Rectangle> GenerateCorridors(List<Rectangle> rooms)
+        private List<Room> GenerateCorridors(List<Room> rooms)
         {
-            var corridors = new List<Rectangle>();
+            var corridors = new List<Room>();
             var roomConnectionInfos = new List<RoomConnectionInfo>();
 
             foreach (var room in rooms)
             {
                 foreach (var r in rooms.Where(x => x != room))
                 {
-                    var cnx = AreRoomsConnectable(room, r);
+                    var cnx = AreRoomsConnectable(room.Rectangle, r.Rectangle);
                     if (cnx != null)
                     {
                         roomConnectionInfos.Add(cnx);
@@ -218,14 +226,19 @@ namespace ProceduralLevelGeneration
                         corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
                     }
 
-                    corridors.Add(corridor);
+                    corridors.Add(new Room
+                    {
+                        Rectangle = corridor,
+                        Type = RoomType.Corridor
+                    });
+
                 }
             }
 
             return corridors;
         }
 
-        private void RenderMap(List<Rectangle> rooms)
+        private void RenderMap(List<Room> rooms)
         {
             //foreach (var r in rooms)
             //{
@@ -236,16 +249,23 @@ namespace ProceduralLevelGeneration
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
-                    var room = rooms.FirstOrDefault(room => x >= room.X && x < room.X + room.Width &&
-                                                            y >= room.Y && y < room.Y + room.Height);
+                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X && x < room.Rectangle.X + room.Rectangle.Width &&
+                                                            y >= room.Rectangle.Y && y < room.Rectangle.Y + room.Rectangle.Height);
 
-                    if (!room.IsEmpty)
+                    if (room != null)
                     {
-                        Console.Write("#");
+                        if (room.Type == RoomType.Corridor)
+                        {
+                            Console.Write("-");
+                        }
+                        else
+                        {
+                            Console.Write("#");
+                        }
                     }
                     else
                     {
-                        Console.Write("-");
+                        Console.Write(" ");
                     }
                 }
 
@@ -254,7 +274,7 @@ namespace ProceduralLevelGeneration
         }
     }
 
-    
+
     public static class LinqExtensions
     {
         // https://stackoverflow.com/questions/438188/split-a-collection-into-n-parts-with-linq
