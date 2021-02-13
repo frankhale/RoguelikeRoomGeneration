@@ -47,29 +47,29 @@ namespace ProceduralLevelGeneration
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
             var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 8);
 
-            RenderMap(rooms);
+            //RenderMap(rooms);
 
             rooms.AddRange(GenerateCorridors(rooms));
 
-            Console.WriteLine("---");
-            Console.WriteLine("WITH CORRIDORS");
-            Console.WriteLine("---");
+            //Console.WriteLine("---");
+            //Console.WriteLine("WITH CORRIDORS");
+            //Console.WriteLine("---");
 
             RenderMap(rooms);
         }
 
-        private int[,] InitializeMap(int width, int height)
-        {
-            int[,] map = new int[height, width];
+        //private int[,] InitializeMap(int width, int height)
+        //{
+        //    int[,] map = new int[height, width];
 
-            for (int y = 0; y < height; y++)
-                for (int x = 0; x < width; x++)
-                {
-                    map[y, x] = 0;
-                }
+        //    for (int y = 0; y < height; y++)
+        //        for (int x = 0; x < width; x++)
+        //        {
+        //            map[y, x] = 0;
+        //        }
 
-            return map;
-        }
+        //    return map;
+        //}
 
         private Dimension GenerateDimension(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight)
         {
@@ -181,6 +181,8 @@ namespace ProceduralLevelGeneration
             var corridors = new List<Rectangle>();
             var roomConnectionInfos = new List<RoomConnectionInfo>();
 
+            var dominantRoomsAlreadySeen = new List<Rectangle>();
+
             foreach (var room in rooms)
             {
                 foreach (var r in rooms)
@@ -190,9 +192,10 @@ namespace ProceduralLevelGeneration
                         var cnx = AreRoomsConnectable(room, r);
                         if (cnx != null)
                         {
-                            if (!roomConnectionInfos.Any(x => x.DominantRoom == room || x.DominantRoom == r))
+                            if (!dominantRoomsAlreadySeen.Any(x => x == cnx.DominantRoom))
                             {
-                                roomConnectionInfos.Add(cnx);
+                                dominantRoomsAlreadySeen.Add(cnx.DominantRoom);
+                                roomConnectionInfos.Add(cnx);                                
                             }
                         }
                     }
@@ -222,10 +225,10 @@ namespace ProceduralLevelGeneration
 
         private void RenderMap(List<Rectangle> rooms)
         {
-            foreach (var r in rooms)
-            {
-                Console.WriteLine($"X = {r.X} | Y = {r.Y} | Width = {r.Width} | Height {r.Height}");
-            }
+            //foreach (var r in rooms)
+            //{
+            //    Console.WriteLine($"X = {r.X} | Y = {r.Y} | Width = {r.Width} | Height {r.Height}");
+            //}
 
             for (int y = 0; y < HEIGHT; y++)
             {
