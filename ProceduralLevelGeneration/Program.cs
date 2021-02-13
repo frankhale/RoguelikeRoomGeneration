@@ -254,9 +254,10 @@ namespace ProceduralLevelGeneration
         }
     }
 
-    // https://stackoverflow.com/questions/438188/split-a-collection-into-n-parts-with-linq
+    
     public static class LinqExtensions
     {
+        // https://stackoverflow.com/questions/438188/split-a-collection-into-n-parts-with-linq
         public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> list, int parts)
         {
             int i = 0;
@@ -266,6 +267,7 @@ namespace ProceduralLevelGeneration
             return splits;
         }
 
+        // https://stackoverflow.com/a/489421/170217
         public static IEnumerable<TSource> DistinctBy<TSource, TKey>
             (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
         {
