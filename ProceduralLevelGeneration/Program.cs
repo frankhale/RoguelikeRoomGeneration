@@ -45,13 +45,13 @@ namespace ProceduralLevelGeneration
 
     public class ProceduralLevelGenerator
     {
-        const int HEIGHT = 25;
-        const int WIDTH = 80;
+        const int HEIGHT = 40;
+        const int WIDTH = 100;
 
         public ProceduralLevelGenerator()
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 6);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 20);
 
             //RenderMap(rooms);
 
@@ -199,11 +199,11 @@ namespace ProceduralLevelGeneration
                 }
             }
 
-            var cnxGroups = roomConnectionInfos.OrderBy(x => x.DominantRoom.X).GroupBy(x => x.DominantRoom);
+            var cnxGroups = roomConnectionInfos.DistinctBy(x => x.DominantRoom).GroupBy(x => x.DominantRoom);
 
             foreach (var cnxGroup in cnxGroups)
             {
-                foreach (var cnx in cnxGroup.DistinctBy(x => x.DominantRoom))
+                foreach (var cnx in cnxGroup)
                 {
                     Rectangle corridor = Rectangle.Empty;
                     var random = new Random();
