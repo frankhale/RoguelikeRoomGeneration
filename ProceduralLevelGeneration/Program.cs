@@ -31,7 +31,9 @@ namespace ProceduralLevelGeneration
     {
         public Rectangle Room1 { get; set; }
         public Rectangle Room2 { get; set; }
-        public IEnumerable<int> IntersectionRange { get; set; }
+        public Rectangle DominantRoom { get; set; }
+        public Rectangle InferiorRoom { get; set; }
+        public List<int> IntersectionRange { get; set; }
         public Orientation Orientation { get; set; }
     }
 
@@ -135,11 +137,27 @@ namespace ProceduralLevelGeneration
 
             if (verticalConnection.Any() || horizontalConnection.Any())
             {
-                Orientation orientation = Orientation.Vertical;
-                IEnumerable<int> intersectionRange = verticalConnection;
+                var roomSet = new List<Rectangle> { room1, room2 };
 
-                if (horizontalConnection.Any())
+                Orientation orientation;
+                IEnumerable<int> intersectionRange;
+                Rectangle dominantRoom = Rectangle.Empty, inferiorRoom = Rectangle.Empty;
+
+                if (verticalConnection.Any())
                 {
+                    var roomSetOrdered = roomSet.OrderBy(x => x.Y);
+                    dominantRoom = roomSetOrdered.First();
+                    inferiorRoom = roomSetOrdered.Last();
+
+                    orientation = Orientation.Vertical;
+                    intersectionRange = verticalConnection;
+                }
+                else
+                {
+                    var roomSetOrdered = roomSet.OrderBy(x => x.X);
+                    dominantRoom = roomSetOrdered.First();
+                    inferiorRoom = roomSetOrdered.Last();
+
                     orientation = Orientation.Horizontal;
                     intersectionRange = horizontalConnection;
                 }
@@ -147,7 +165,10 @@ namespace ProceduralLevelGeneration
                 return new RoomConnectionInfo
                 {
                     Room1 = room1,
-                    Room2 = room2,                    
+                    Room2 = room2,
+                    DominantRoom = dominantRoom,
+                    InferiorRoom = inferiorRoom,
+                    IntersectionRange = intersectionRange.ToList(),
                     Orientation = orientation
                 };
             }
@@ -161,23 +182,39 @@ namespace ProceduralLevelGeneration
             var roomConnectionInfos = new List<RoomConnectionInfo>();
 
             foreach (var room in rooms)
-            {                
-                foreach(var r in rooms)
+            {
+                foreach (var r in rooms)
                 {
-                    if(r != room)
+                    if (r != room)
                     {
                         var cnx = AreRoomsConnectable(room, r);
                         if (cnx != null)
                         {
-                            roomConnectionInfos.Add(cnx);
+                            if (!roomConnectionInfos.Any(x => x.DominantRoom == room || x.DominantRoom == r))
+                            {
+                                roomConnectionInfos.Add(cnx);
+                            }
                         }
                     }
                 }
-            }            
+            }
 
-            foreach(var cnx in roomConnectionInfos)
+            foreach (var cnx in roomConnectionInfos)
             {
-                // create the corridor here...
+                Rectangle corridor = Rectangle.Empty;
+                var random = new Random();
+                var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
+
+                if (cnx.Orientation == Orientation.Vertical)
+                {
+                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
+                }
+                else if (cnx.Orientation == Orientation.Horizontal)
+                {
+                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
+                }
+
+                corridors.Add(corridor);
             }
 
             return corridors;
