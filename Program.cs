@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 
 namespace RoguelikeRoomGeneration
@@ -211,7 +212,7 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
-            foreach (var cnx in roomConnectionInfos.DistinctBy(x => x.DominantRoom))
+            foreach (var cnx in roomConnectionInfos)
             {
                 Rectangle corridor = Rectangle.Empty;
                 var random = new Random(cnx.IntersectionRange.Count);
@@ -233,7 +234,9 @@ namespace RoguelikeRoomGeneration
                 });
             }
 
-            return corridors;
+            var removeCorridorsThatOverlapWithRooms = corridors.Where(x => rooms.Any(y => y.Rectangle.IntersectsWith(x.Rectangle))).ToList();            
+
+            return corridors.Except(removeCorridorsThatOverlapWithRooms).ToList();
         }
 
         private void RenderMap(List<Room> rooms)
