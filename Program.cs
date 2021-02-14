@@ -53,7 +53,7 @@ namespace RoguelikeRoomGeneration
     public class RoguelikeRoomGeneration
     {
         const int HEIGHT = 40;
-        const int WIDTH = 100;
+        const int WIDTH = 120;
 
         public RoguelikeRoomGeneration()
         {
@@ -104,6 +104,8 @@ namespace RoguelikeRoomGeneration
         {
             var rooms = new List<Room>();
 
+            var gap = 3;
+
             for (int i = 0; i < numRooms; i++)
             {
                 Dimension dim;
@@ -112,8 +114,8 @@ namespace RoguelikeRoomGeneration
                 {
                     dim = GenerateDimension(mapWidth, mapHeight, roomMaxWidth, roomMaxHeight);
                 }
-                while (rooms.Any(room => (!(dim.X > (room.Rectangle.X + room.Rectangle.Width + 2) || (dim.X + dim.Width + 2) < room.Rectangle.X ||
-                                          dim.Y > (room.Rectangle.Y + room.Rectangle.Height + 2) || (dim.Y + dim.Height + 2) < room.Rectangle.Y))));
+                while (rooms.Any(room => (!(dim.X > (room.Rectangle.X + room.Rectangle.Width + gap) || (dim.X + dim.Width + gap) < room.Rectangle.X ||
+                                          dim.Y > (room.Rectangle.Y + room.Rectangle.Height + gap) || (dim.Y + dim.Height + gap) < room.Rectangle.Y))));
 
 
                 rooms.Add(new Room
@@ -208,34 +210,32 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
-            foreach (var cnxGroup in roomConnectionInfos.DistinctBy(x => x.DominantRoom).GroupBy(x => x.DominantRoom))
+            foreach (var cnx in roomConnectionInfos.DistinctBy(x => x.DominantRoom))
             {
-                foreach (var cnx in cnxGroup)
+                Rectangle corridor = Rectangle.Empty;
+                var random = new Random();
+                var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
+
+                if (cnx.Orientation == Orientation.Vertical)
                 {
-                    Rectangle corridor = Rectangle.Empty;
-                    var random = new Random();
-                    var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
-
-                    if (cnx.Orientation == Orientation.Vertical)
-                    {
-                        corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
-                    }
-                    else if (cnx.Orientation == Orientation.Horizontal)
-                    {
-                        corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
-                    }
-
-                    
-
-                    corridors.Add(new Room
-                    {
-                        Rectangle = corridor,
-                        Type = RoomType.Corridor
-                    });
+                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
                 }
+                else if (cnx.Orientation == Orientation.Horizontal)
+                {
+                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
+                }
+
+                corridors.Add(new Room
+                {
+                    Rectangle = corridor,
+                    Type = RoomType.Corridor
+                });
             }
 
-            return corridors;
+            return corridors.Where(x => x.Type == RoomType.Corridor &&
+                                        rooms.Any(y =>
+                                            y.Rectangle != x.Rectangle &&
+                                            !y.Rectangle.IntersectsWith(x.Rectangle))).ToList();
         }
 
         private void RenderMap(List<Room> rooms)
