@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace RoguelikeRoomGeneration
 {
@@ -57,10 +56,10 @@ namespace RoguelikeRoomGeneration
         const int WIDTH = 100;
 
         public RoguelikeRoomGeneration()
-        {            
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 15);
+        {
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 6);
             rooms.AddRange(GenerateCorridors(rooms));
-                        
+
             RenderMapToConsole(rooms);
         }
 
@@ -68,8 +67,8 @@ namespace RoguelikeRoomGeneration
         {
             var random = new Random();
 
-            int width = random.Next(5, roomMaxWidth);
-            int height = random.Next(5, roomMaxHeight);
+            int width = random.Next(4, roomMaxWidth);
+            int height = random.Next(4, roomMaxHeight);
             int x = random.Next(1, mapWidth - width - 1);
             int y = random.Next(1, mapHeight - height - 1);
 
@@ -205,7 +204,7 @@ namespace RoguelikeRoomGeneration
                 var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
 
                 if (cnx.Orientation == Orientation.Vertical)
-                {                     
+                {
                     corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
                 }
                 else if (cnx.Orientation == Orientation.Horizontal)
@@ -220,7 +219,7 @@ namespace RoguelikeRoomGeneration
                 });
             }
 
-            var removeCorridorsThatOverlapWithRooms = corridors.Where(x => rooms.Any(y => y.Rectangle.IntersectsWith(x.Rectangle))).ToList();            
+            var removeCorridorsThatOverlapWithRooms = corridors.Where(x => rooms.Any(y => y.Rectangle.IntersectsWith(x.Rectangle))).ToList();
 
             return corridors.Except(removeCorridorsThatOverlapWithRooms).ToList();
         }
