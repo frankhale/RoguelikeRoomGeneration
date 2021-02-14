@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace ProceduralLevelGeneration
+namespace RoguelikeRoomGeneration
 {
     public enum Orientation
     {
@@ -41,6 +41,7 @@ namespace ProceduralLevelGeneration
         public Rectangle InferiorRoom { get; set; }
         public List<int> IntersectionRange { get; set; }
         public Orientation Orientation { get; set; }
+        public int Score { get; set; }
     }
 
     public class Room
@@ -49,15 +50,15 @@ namespace ProceduralLevelGeneration
         public RoomType Type { get; set; }
     }
 
-    public class ProceduralLevelGenerator
+    public class RoguelikeRoomGeneration
     {
         const int HEIGHT = 40;
         const int WIDTH = 100;
 
-        public ProceduralLevelGenerator()
+        public RoguelikeRoomGeneration()
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 20);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 20);
 
             rooms.AddRange(GenerateCorridors(rooms));
 
@@ -207,9 +208,7 @@ namespace ProceduralLevelGeneration
                 }
             }
 
-            var cnxGroups = roomConnectionInfos.DistinctBy(x => x.DominantRoom).GroupBy(x => x.DominantRoom);
-
-            foreach (var cnxGroup in cnxGroups)
+            foreach (var cnxGroup in roomConnectionInfos.DistinctBy(x => x.DominantRoom).GroupBy(x => x.DominantRoom))
             {
                 foreach (var cnx in cnxGroup)
                 {
@@ -226,12 +225,13 @@ namespace ProceduralLevelGeneration
                         corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
                     }
 
+                    
+
                     corridors.Add(new Room
                     {
                         Rectangle = corridor,
                         Type = RoomType.Corridor
                     });
-
                 }
             }
 
@@ -306,7 +306,7 @@ namespace ProceduralLevelGeneration
     {
         static void Main(string[] args)
         {
-            new ProceduralLevelGenerator();
+            new RoguelikeRoomGeneration();
         }
     }
 }
