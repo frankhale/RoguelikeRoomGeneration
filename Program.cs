@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace RoguelikeRoomGeneration
 {
@@ -53,11 +54,11 @@ namespace RoguelikeRoomGeneration
     public class RoguelikeRoomGeneration
     {
         const int HEIGHT = 40;
-        const int WIDTH = 140;
+        const int WIDTH = 100;
 
         public RoguelikeRoomGeneration()
         {            
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 20);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 15);
             rooms.AddRange(GenerateCorridors(rooms));
                         
             RenderMapToConsole(rooms);
@@ -181,6 +182,9 @@ namespace RoguelikeRoomGeneration
 
             foreach (var room in rooms)
             {
+                // This finds all connections for each room to every other
+                // possible room. We are going to get a lot of connections 
+                // out of this!
                 foreach (var r in rooms.Where(x => x != room))
                 {
                     var cnx = AreRoomsConnectable(room.Rectangle, r.Rectangle);
@@ -191,6 +195,9 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
+            // We aren't quite there yet in terms of how best to deal with
+            // actually connecting each room with the information we gathered
+            // from above. This is the best I have so far.
             foreach (var cnx in roomConnectionInfos)
             {
                 Rectangle corridor = Rectangle.Empty;
