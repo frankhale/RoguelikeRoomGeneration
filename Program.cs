@@ -56,38 +56,19 @@ namespace RoguelikeRoomGeneration
         const int WIDTH = 140;
 
         public RoguelikeRoomGeneration()
-        {
-            //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 15, 20);
-
+        {            
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 20);
             rooms.AddRange(GenerateCorridors(rooms));
-
-            //Console.WriteLine("---");
-            //Console.WriteLine("WITH CORRIDORS");
-            //Console.WriteLine("---");
-
-            RenderMap(rooms);
+                        
+            RenderMapToConsole(rooms);
         }
-
-        //private int[,] InitializeMap(int width, int height)
-        //{
-        //    int[,] map = new int[height, width];
-
-        //    for (int y = 0; y < height; y++)
-        //        for (int x = 0; x < width; x++)
-        //        {
-        //            map[y, x] = 0;
-        //        }
-
-        //    return map;
-        //}
 
         private Dimension GenerateDimension(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight)
         {
             var random = new Random();
 
-            int width = random.Next(4, roomMaxWidth);
-            int height = random.Next(4, roomMaxHeight);
+            int width = random.Next(5, roomMaxWidth);
+            int height = random.Next(5, roomMaxHeight);
             int x = random.Next(1, mapWidth - width - 1);
             int y = random.Next(1, mapHeight - height - 1);
 
@@ -217,7 +198,7 @@ namespace RoguelikeRoomGeneration
                 var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
 
                 if (cnx.Orientation == Orientation.Vertical)
-                {
+                {                     
                     corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
                 }
                 else if (cnx.Orientation == Orientation.Horizontal)
@@ -237,7 +218,7 @@ namespace RoguelikeRoomGeneration
             return corridors.Except(removeCorridorsThatOverlapWithRooms).ToList();
         }
 
-        private void RenderMap(List<Room> rooms)
+        private void RenderMapToConsole(List<Room> rooms)
         {
             //foreach (var r in rooms)
             //{
