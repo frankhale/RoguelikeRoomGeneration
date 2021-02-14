@@ -210,10 +210,12 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
+            // .DistinctBy(x => x.DominantRoom)
+
             foreach (var cnx in roomConnectionInfos.DistinctBy(x => x.DominantRoom))
             {
                 Rectangle corridor = Rectangle.Empty;
-                var random = new Random();
+                var random = new Random(cnx.IntersectionRange.Count);
                 var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
 
                 if (cnx.Orientation == Orientation.Vertical)
@@ -230,12 +232,9 @@ namespace RoguelikeRoomGeneration
                     Rectangle = corridor,
                     Type = RoomType.Corridor
                 });
-            }
-
-            return corridors.Where(x => x.Type == RoomType.Corridor &&
-                                        rooms.Any(y =>
-                                            y.Rectangle != x.Rectangle &&
-                                            !y.Rectangle.IntersectsWith(x.Rectangle))).ToList();
+            }           
+                                               
+            return corridors;
         }
 
         private void RenderMap(List<Room> rooms)
