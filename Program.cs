@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Security.Cryptography.X509Certificates;
 
 namespace RoguelikeRoomGeneration
 {
@@ -55,12 +53,12 @@ namespace RoguelikeRoomGeneration
     public class RoguelikeRoomGeneration
     {
         const int HEIGHT = 40;
-        const int WIDTH = 120;
+        const int WIDTH = 140;
 
         public RoguelikeRoomGeneration()
         {
             //int[,] map = InitializeMap(WIDTH, HEIGHT);
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 10, 20);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 15, 20);
 
             rooms.AddRange(GenerateCorridors(rooms));
 
