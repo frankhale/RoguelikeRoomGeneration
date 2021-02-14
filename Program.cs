@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace RoguelikeRoomGeneration
 {
@@ -210,8 +211,6 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
-            // .DistinctBy(x => x.DominantRoom)
-
             foreach (var cnx in roomConnectionInfos.DistinctBy(x => x.DominantRoom))
             {
                 Rectangle corridor = Rectangle.Empty;
@@ -232,8 +231,8 @@ namespace RoguelikeRoomGeneration
                     Rectangle = corridor,
                     Type = RoomType.Corridor
                 });
-            }           
-                                               
+            }
+
             return corridors;
         }
 
@@ -272,7 +271,6 @@ namespace RoguelikeRoomGeneration
             }
         }
     }
-
 
     public static class LinqExtensions
     {
