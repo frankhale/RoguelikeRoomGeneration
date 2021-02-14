@@ -52,12 +52,12 @@ namespace RoguelikeRoomGeneration
 
     public class RoguelikeRoomGeneration
     {
-        const int HEIGHT = 40;
+        const int HEIGHT = 50;
         const int WIDTH = 100;
 
         public RoguelikeRoomGeneration()
         {
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 6);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 10);
             rooms.AddRange(GenerateCorridors(rooms));
 
             RenderMapToConsole(rooms);
@@ -67,10 +67,10 @@ namespace RoguelikeRoomGeneration
         {
             var random = new Random();
 
-            int width = random.Next(4, roomMaxWidth);
-            int height = random.Next(4, roomMaxHeight);
-            int x = random.Next(1, mapWidth - width - 1);
-            int y = random.Next(1, mapHeight - height - 1);
+            int width = random.Next(5, roomMaxWidth);
+            int height = random.Next(5, roomMaxHeight);
+            int x = random.Next(3, mapWidth - width - 5);
+            int y = random.Next(3, mapHeight - height - 5);
 
             return new Dimension
             {
@@ -132,6 +132,8 @@ namespace RoguelikeRoomGeneration
 
             var verticalConnection = rangeX1.Intersect(rangeX2);
             var horizontalConnection = rangeY1.Intersect(rangeY2);
+
+            //Console.WriteLine($"X1 = {rangeX1.Count()} | X2 = {rangeX2.Count()} | Y1 = {rangeY1.Count()} | Y2 = {rangeY1.Count()}");
 
             if (verticalConnection.Any() || horizontalConnection.Any())
             {
@@ -201,15 +203,15 @@ namespace RoguelikeRoomGeneration
             {
                 Rectangle corridor = Rectangle.Empty;
                 var random = new Random(cnx.IntersectionRange.Count);
-                var pos = cnx.IntersectionRange[random.Next(0, cnx.IntersectionRange.Count)];
+                var pos = cnx.IntersectionRange[cnx.IntersectionRange.Count / 2];
 
                 if (cnx.Orientation == Orientation.Vertical)
                 {
-                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
+                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 3, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
                 }
                 else if (cnx.Orientation == Orientation.Horizontal)
                 {
-                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
+                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 3);
                 }
 
                 corridors.Add(new Room
@@ -231,22 +233,30 @@ namespace RoguelikeRoomGeneration
             //    Console.WriteLine($"X = {r.X} | Y = {r.Y} | Width = {r.Width} | Height {r.Height}");
             //}
 
+            //var mapPadding = 10;
+            var roomPadding = 2;
+
             for (int y = 0; y < HEIGHT; y++)
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
-                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X && x < room.Rectangle.X + room.Rectangle.Width &&
-                                                            y >= room.Rectangle.Y && y < room.Rectangle.Y + room.Rectangle.Height);
+                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X - roomPadding &&
+                                                            x <= room.Rectangle.X - roomPadding + room.Rectangle.Width + roomPadding &&
+                                                            y >= room.Rectangle.Y - roomPadding &&
+                                                            y <= room.Rectangle.Y - roomPadding + room.Rectangle.Height + roomPadding);
 
                     if (room != null)
                     {
-                        if (room.Type == RoomType.Corridor)
+                        if (room.Rectangle.Left - roomPadding == x ||
+                            room.Rectangle.Right== x ||
+                            room.Rectangle.Top - roomPadding == y ||
+                            room.Rectangle.Bottom == y) 
                         {
-                            Console.Write("-");
+                            Console.Write("#");
                         }
                         else
                         {
-                            Console.Write("#");
+                            Console.Write(".");
                         }
                     }
                     else
