@@ -8,7 +8,8 @@ namespace RoguelikeRoomGeneration
     public enum Orientation
     {
         Vertical,
-        Horizontal
+        Horizontal,
+        None
     }
 
     public enum RoomType
@@ -17,37 +18,36 @@ namespace RoguelikeRoomGeneration
         Corridor
     }
 
-    public class Dimension
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-    }
-
     public class RoomInfo
     {
         public Point TopLeft { get; set; }
         public Point TopRight { get; set; }
         public Point BottomLeft { get; set; }
         public Point BottomRight { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public Rectangle Rectangle { get; set; }
     }
 
     public class RoomConnectionInfo
     {
         public Rectangle Room1 { get; set; }
         public Rectangle Room2 { get; set; }
+        public RoomInfo RoomInfo1 { get; set; }
+        public RoomInfo RoomInfo2 { get; set; }
         public Rectangle DominantRoom { get; set; }
         public Rectangle InferiorRoom { get; set; }
         public List<int> IntersectionRange { get; set; }
         public Orientation Orientation { get; set; }
-        public int Score { get; set; }
     }
 
     public class Room
     {
         public Rectangle Rectangle { get; set; }
+        public RoomInfo RoomInfo { get; set; }
+        public RoomConnectionInfo RoomConnectionInfo { get; set; }
         public RoomType Type { get; set; }
+        public Orientation Orientation { get; set; }
     }
 
     public class RoguelikeRoomGeneration
@@ -57,22 +57,21 @@ namespace RoguelikeRoomGeneration
 
         public RoguelikeRoomGeneration()
         {
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 20, 20, 10);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 10);
             rooms.AddRange(GenerateCorridors(rooms));
-
             RenderMapToConsole(rooms);
         }
 
-        private Dimension GenerateDimension(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight)
+        private Rectangle GenerateDimension(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight)
         {
             var random = new Random();
 
             int width = random.Next(5, roomMaxWidth);
             int height = random.Next(5, roomMaxHeight);
-            int x = random.Next(3, mapWidth - width - 5);
-            int y = random.Next(3, mapHeight - height - 5);
+            int x = random.Next(2, mapWidth - width - 2);
+            int y = random.Next(2, mapHeight - height - 2);
 
-            return new Dimension
+            return new Rectangle
             {
                 X = x,
                 Y = y,
@@ -85,11 +84,11 @@ namespace RoguelikeRoomGeneration
         {
             var rooms = new List<Room>();
 
-            var gap = 3;
+            var gap = 2;
 
             for (int i = 0; i < numRooms; i++)
             {
-                Dimension dim;
+                Rectangle dim;
 
                 do
                 {
@@ -102,7 +101,9 @@ namespace RoguelikeRoomGeneration
                 rooms.Add(new Room
                 {
                     Rectangle = new Rectangle(dim.X, dim.Y, dim.Width, dim.Height),
-                    Type = RoomType.Room
+                    RoomInfo = GetRoomInfo(dim),
+                    Type = RoomType.Room,
+                    Orientation = Orientation.None
                 });
             }
 
@@ -116,19 +117,19 @@ namespace RoguelikeRoomGeneration
                 TopLeft = new Point(r.X, r.Y),
                 TopRight = new Point(r.X + r.Width, r.Y),
                 BottomLeft = new Point(r.X, r.Y + r.Height),
-                BottomRight = new Point(r.X + r.Width, r.Y + r.Height)
+                BottomRight = new Point(r.X + r.Width, r.Y + r.Height),
+                Width = r.Width,
+                Height = r.Height,
+                Rectangle = r
             };
         }
 
-        private RoomConnectionInfo AreRoomsConnectable(Rectangle room1, Rectangle room2)
+        private RoomConnectionInfo AreRoomsConnectable(Room room1, Room room2)
         {
-            var roomInfo1 = GetRoomInfo(room1);
-            var roomInfo2 = GetRoomInfo(room2);
-
-            var rangeX1 = Enumerable.Range(roomInfo1.TopLeft.X, room1.Width);
-            var rangeX2 = Enumerable.Range(roomInfo2.TopLeft.X, room2.Width);
-            var rangeY1 = Enumerable.Range(roomInfo1.TopLeft.Y, room1.Height);
-            var rangeY2 = Enumerable.Range(roomInfo2.TopLeft.Y, room2.Height);
+            var rangeX1 = Enumerable.Range(room1.RoomInfo.TopLeft.X, room1.RoomInfo.Width);
+            var rangeX2 = Enumerable.Range(room2.RoomInfo.TopLeft.X, room2.RoomInfo.Width);
+            var rangeY1 = Enumerable.Range(room1.RoomInfo.TopLeft.Y, room1.RoomInfo.Height);
+            var rangeY2 = Enumerable.Range(room2.RoomInfo.TopLeft.Y, room2.RoomInfo.Height);
 
             var verticalConnection = rangeX1.Intersect(rangeX2);
             var horizontalConnection = rangeY1.Intersect(rangeY2);
@@ -137,7 +138,7 @@ namespace RoguelikeRoomGeneration
 
             if (verticalConnection.Any() || horizontalConnection.Any())
             {
-                var roomSet = new List<Rectangle> { room1, room2 };
+                var roomSet = new List<Rectangle> { room1.Rectangle, room2.Rectangle };
 
                 Orientation orientation;
                 IEnumerable<int> intersectionRange;
@@ -164,8 +165,10 @@ namespace RoguelikeRoomGeneration
 
                 return new RoomConnectionInfo
                 {
-                    Room1 = room1,
-                    Room2 = room2,
+                    Room1 = room1.Rectangle,
+                    Room2 = room2.Rectangle,
+                    RoomInfo1 = room1.RoomInfo,
+                    RoomInfo2 = room2.RoomInfo,
                     DominantRoom = dominantRoom,
                     InferiorRoom = inferiorRoom,
                     IntersectionRange = intersectionRange.ToList(),
@@ -176,6 +179,7 @@ namespace RoguelikeRoomGeneration
             return null;
         }
 
+        
         private List<Room> GenerateCorridors(List<Room> rooms)
         {
             var corridors = new List<Room>();
@@ -188,7 +192,7 @@ namespace RoguelikeRoomGeneration
                 // out of this!
                 foreach (var r in rooms.Where(x => x != room))
                 {
-                    var cnx = AreRoomsConnectable(room.Rectangle, r.Rectangle);
+                    var cnx = AreRoomsConnectable(room, r);
                     if (cnx != null)
                     {
                         roomConnectionInfos.Add(cnx);
@@ -203,25 +207,28 @@ namespace RoguelikeRoomGeneration
             {
                 Rectangle corridor = Rectangle.Empty;
                 var random = new Random(cnx.IntersectionRange.Count);
-                var pos = cnx.IntersectionRange[cnx.IntersectionRange.Count / 2];
+                var corridorIntersection = cnx.IntersectionRange[cnx.IntersectionRange.Count / 2];
 
                 if (cnx.Orientation == Orientation.Vertical)
                 {
-                    corridor = new Rectangle(pos, cnx.DominantRoom.Bottom, 3, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
+                    corridor = new Rectangle(corridorIntersection, cnx.DominantRoom.Bottom, 1, cnx.InferiorRoom.Top - cnx.DominantRoom.Bottom);
                 }
                 else if (cnx.Orientation == Orientation.Horizontal)
                 {
-                    corridor = new Rectangle(cnx.DominantRoom.Right, pos, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 3);
+                    corridor = new Rectangle(cnx.DominantRoom.Right, corridorIntersection, cnx.InferiorRoom.Left - cnx.DominantRoom.Right, 1);
                 }
 
                 corridors.Add(new Room
                 {
                     Rectangle = corridor,
-                    Type = RoomType.Corridor
+                    RoomConnectionInfo = cnx,
+                    Type = RoomType.Corridor,
+                    Orientation = cnx.Orientation
                 });
             }
 
-            var removeCorridorsThatOverlapWithRooms = corridors.Where(x => rooms.Any(y => y.Rectangle.IntersectsWith(x.Rectangle))).ToList();
+            var removeCorridorsThatOverlapWithRooms = corridors.Where(x =>
+                rooms.Any(y => y.Rectangle.IntersectsWith(x.Rectangle))).ToList();
 
             return corridors.Except(removeCorridorsThatOverlapWithRooms).ToList();
         }
@@ -233,30 +240,26 @@ namespace RoguelikeRoomGeneration
             //    Console.WriteLine($"X = {r.X} | Y = {r.Y} | Width = {r.Width} | Height {r.Height}");
             //}
 
-            //var mapPadding = 10;
-            var roomPadding = 2;
-
             for (int y = 0; y < HEIGHT; y++)
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
-                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X - roomPadding &&
-                                                            x <= room.Rectangle.X - roomPadding + room.Rectangle.Width + roomPadding &&
-                                                            y >= room.Rectangle.Y - roomPadding &&
-                                                            y <= room.Rectangle.Y - roomPadding + room.Rectangle.Height + roomPadding);
+                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X  && x < room.Rectangle.X + room.Rectangle.Width &&
+                                                                y >= room.Rectangle.Y && y < room.Rectangle.Y + room.Rectangle.Height);
 
                     if (room != null)
                     {
-                        if (room.Rectangle.Left - roomPadding == x ||
-                            room.Rectangle.Right== x ||
-                            room.Rectangle.Top - roomPadding == y ||
-                            room.Rectangle.Bottom == y) 
+                        if (room.Type == RoomType.Room)
                         {
                             Console.Write("#");
                         }
-                        else
+                        else if (room.Type == RoomType.Corridor && room.Orientation == Orientation.Horizontal)
                         {
-                            Console.Write(".");
+                            Console.Write("-");
+                        }
+                        else if (room.Type == RoomType.Corridor && room.Orientation == Orientation.Vertical)
+                        {
+                            Console.Write("|");
                         }
                     }
                     else
@@ -267,6 +270,48 @@ namespace RoguelikeRoomGeneration
 
                 Console.WriteLine();
             }
+        }
+
+        private void RenderMapToConsole2(List<Room> rooms)
+        {
+            //foreach (var r in rooms)
+            //{
+            //    Console.WriteLine($"X = {r.X} | Y = {r.Y} | Width = {r.Width} | Height {r.Height}");
+            //}
+
+            //var roomPadding = 2;
+
+            //for (int y = 0; y < HEIGHT; y++)
+            //{
+            //    for (int x = 0; x < WIDTH; x++)
+            //    {
+            //        var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X - roomPadding &&
+            //                                                x <= room.Rectangle.X - roomPadding + room.Rectangle.Width + roomPadding &&
+            //                                                y >= room.Rectangle.Y - roomPadding &&
+            //                                                y <= room.Rectangle.Y - roomPadding + room.Rectangle.Height + roomPadding);
+
+            //        if (room != null)
+            //        {
+            //            if (room.Rectangle.Left - roomPadding == x ||
+            //                room.Rectangle.Right == x ||
+            //                room.Rectangle.Top - roomPadding == y ||
+            //                room.Rectangle.Bottom == y)
+            //            {
+            //                Console.Write("#");
+            //            }
+            //            else
+            //            {
+            //                Console.Write(".");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            Console.Write(" ");
+            //        }
+            //    }
+
+            //    Console.WriteLine();
+            //}
         }
     }
 
