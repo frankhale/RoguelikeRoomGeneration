@@ -18,6 +18,7 @@ Sometimes rooms won't have a corridor. I am working to resolve this.
 
 ## Author(s)
 
-Frank Hale &lt;frankhaledevelops@gmail.com&gt;
+- Frank Hale &lt;frankhaledevelops@gmail.com&gt;
+- Melinda Hale
 
-13 February 2021
+15 February 2021
