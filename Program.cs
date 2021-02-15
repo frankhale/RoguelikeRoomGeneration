@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 
 namespace RoguelikeRoomGeneration
 {
@@ -24,9 +26,12 @@ namespace RoguelikeRoomGeneration
         public Point TopRight { get; set; }
         public Point BottomLeft { get; set; }
         public Point BottomRight { get; set; }
+        public Point HorizontalMiddle { get; set; }
+        public Point VerticalMiddle { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public Rectangle Rectangle { get; set; }
+
     }
 
     public class RoomConnectionInfo
@@ -57,7 +62,7 @@ namespace RoguelikeRoomGeneration
 
         public RoguelikeRoomGeneration()
         {
-            var rooms = GenerateRooms(WIDTH, HEIGHT, 10, 10, 10);
+            var rooms = GenerateRooms(WIDTH, HEIGHT, 15, 15, 15);
             rooms.AddRange(GenerateCorridors(rooms));
             RenderMapToConsole(rooms);
         }
@@ -118,6 +123,8 @@ namespace RoguelikeRoomGeneration
                 TopRight = new Point(r.X + r.Width, r.Y),
                 BottomLeft = new Point(r.X, r.Y + r.Height),
                 BottomRight = new Point(r.X + r.Width, r.Y + r.Height),
+                HorizontalMiddle = new Point((int)(new int[] { r.Left, r.Right }).Average(), r.Left),
+                VerticalMiddle = new Point(r.Top, (int)(new int[] { r.Top, r.Bottom }).Average()),
                 Width = r.Width,
                 Height = r.Height,
                 Rectangle = r
@@ -179,17 +186,27 @@ namespace RoguelikeRoomGeneration
             return null;
         }
 
-        
         private List<Room> GenerateCorridors(List<Room> rooms)
+        {
+            Console.WriteLine("Generate Corridors is inn the process of being rewritten...");
+
+            var corridors = new List<Room>();
+
+            foreach (var room in rooms)
+            {
+                //Console.WriteLine($"X = {room.RoomInfo.TopLeft} | Width = {room.RoomInfo.Width} | Height = {room.RoomInfo.Height} | VerticalMiddle = {room.RoomInfo.VerticalMiddle}");
+            }
+
+            return corridors;
+        }
+
+        private List<Room> GenerateCorridors2(List<Room> rooms)
         {
             var corridors = new List<Room>();
             var roomConnectionInfos = new List<RoomConnectionInfo>();
 
             foreach (var room in rooms)
             {
-                // This finds all connections for each room to every other
-                // possible room. We are going to get a lot of connections 
-                // out of this!
                 foreach (var r in rooms.Where(x => x != room))
                 {
                     var cnx = AreRoomsConnectable(room, r);
@@ -200,9 +217,6 @@ namespace RoguelikeRoomGeneration
                 }
             }
 
-            // We aren't quite there yet in terms of how best to deal with
-            // actually connecting each room with the information we gathered
-            // from above. This is the best I have so far.
             foreach (var cnx in roomConnectionInfos)
             {
                 Rectangle corridor = Rectangle.Empty;
@@ -244,14 +258,24 @@ namespace RoguelikeRoomGeneration
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
-                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X  && x < room.Rectangle.X + room.Rectangle.Width &&
-                                                                y >= room.Rectangle.Y && y < room.Rectangle.Y + room.Rectangle.Height);
+                    var room = rooms.FirstOrDefault(room => x >= room.Rectangle.X && x <= room.Rectangle.X + room.Rectangle.Width &&
+                                                            y >= room.Rectangle.Y && y <= room.Rectangle.Y + room.Rectangle.Height);
 
                     if (room != null)
                     {
                         if (room.Type == RoomType.Room)
                         {
-                            Console.Write("#");
+                            if (room.Rectangle.Left == x ||
+                                room.Rectangle.Right == x ||
+                                room.Rectangle.Top == y ||
+                                room.Rectangle.Bottom == y)
+                            {
+                                Console.Write("#");
+                            }
+                            else
+                            {
+                                Console.Write(".");
+                            }
                         }
                         else if (room.Type == RoomType.Corridor && room.Orientation == Orientation.Horizontal)
                         {
