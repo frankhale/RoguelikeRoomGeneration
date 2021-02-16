@@ -55,9 +55,9 @@ namespace RoguelikeRoomGeneration.FirstGen
 
     public class RoomGenerator1
     {
-        private const int HEIGHT = 30;
+        private const int HEIGHT = 40;
         private const int WIDTH = 110;
-        private const int NUM_ROOMS = 4;
+        private const int NUM_ROOMS = 8;
         private const int MAX_ROOM_WIDTH = 20;
         private const int MAX_ROOM_HEIGHT = 20;
         private bool DEBUG = false;

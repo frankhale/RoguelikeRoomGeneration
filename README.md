@@ -14,7 +14,7 @@ Sometimes rooms won't have a corridor. I am working to resolve this.
 
 ![Room Generation](screenshots/rooms.png)
 
-![Rooms With Corridors](screenshots/rooms-with-corridors.png)
+![Rooms With Corridors](screenshots/rooms-with-straight-corridors.png)
 
 ![Rooms With Z Shaped Corridors](screenshots/rooms-with-z-shaped-corridors.png)
 
