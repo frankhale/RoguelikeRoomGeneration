@@ -18,6 +18,9 @@ namespace RoguelikeRoomGeneration.SecondGen
         Corridor
     }
 
+    // This doesn't make sense in it's current form. We should store the room
+    // id or some identifying name so we can understand what rooms we are
+    // connected to and where those rooms are connected
     public class RoomConnection
     {
         public Point TopMiddle { get; set; }
