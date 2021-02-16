@@ -18,6 +18,14 @@ namespace RoguelikeRoomGeneration.SecondGen
         Corridor
     }
 
+    public class RoomConnection
+    {
+        public Point TopMiddle { get; set; }
+        public Point LeftMiddle { get; set; }
+        public Point RightMiddle { get; set; }
+        public Point BottomMiddle { get; set; }
+    }
+
     public class RoomInfo
     {
         public Point TopLeft { get; set; }
@@ -32,12 +40,12 @@ namespace RoguelikeRoomGeneration.SecondGen
     }
 
     public class Room
-    {
+    {        
         public Rectangle Rectangle { get; set; }
         public RoomInfo RoomInfo { get; set; }
         public RoomType Type { get; set; }
         public Orientation Orientation { get; set; }
-        public int Index { get; set; }
+        public RoomConnection Connection { get; set; }
     }
 
     public class RoomGenerator2
@@ -45,8 +53,8 @@ namespace RoguelikeRoomGeneration.SecondGen
         private const int HEIGHT = 30;
         private const int WIDTH = 120;
         private const int NUM_ROOMS = 4;
-        private const int MAX_ROOM_WIDTH = 20;
-        private const int MAX_ROOM_HEIGHT = 20;
+        private const int MAX_ROOM_WIDTH = 10;
+        private const int MAX_ROOM_HEIGHT = 10;
         private bool DEBUG = false;
 
         public RoomGenerator2(bool debug = false)
@@ -87,8 +95,7 @@ namespace RoguelikeRoomGeneration.SecondGen
         private List<Room> GenerateRooms(int mapWidth, int mapHeight, int roomMaxWidth, int roomMaxHeight, int numRooms)
         {
             var rooms = new List<Room>();
-
-            var gap = 8;
+            var padding = 8; // put some default space between each room
 
             for (int i = 0; i < numRooms; i++)
             {
@@ -98,19 +105,12 @@ namespace RoguelikeRoomGeneration.SecondGen
                 {
                     dim = GenerateDimension(mapWidth, mapHeight, roomMaxWidth, roomMaxHeight);
                 }
-                while (rooms.Any(room => (!(dim.X > (room.Rectangle.Right + gap) || (dim.Right + gap) < room.Rectangle.X ||
-                                          dim.Y > (room.Rectangle.Bottom + gap) || (dim.Bottom + gap) < room.Rectangle.Y))));
+                while (rooms.Any(room => (!(dim.X > (room.Rectangle.Right + padding) || (dim.Right + padding) < room.Rectangle.X ||
+                                          dim.Y > (room.Rectangle.Bottom + padding) || (dim.Bottom + padding) < room.Rectangle.Y))));
 
                 Log($"X = {dim.X} | Y = {dim.Y} | Width = {dim.Width} | Height {dim.Height}");
 
-                rooms.Add(new Room
-                {
-                    Rectangle = new Rectangle(dim.X, dim.Y, dim.Width, dim.Height),
-                    RoomInfo = GetRoomInfo(dim),
-                    Type = RoomType.Room,
-                    Orientation = Orientation.None,
-                    Index = rooms.Count + 1
-                });
+                rooms.Add(CreateRoomFromRect(dim.X, dim.Y, dim.Width, dim.Height, Orientation.None, RoomType.Room));
             }
 
             return rooms;
@@ -125,7 +125,8 @@ namespace RoguelikeRoomGeneration.SecondGen
                 Rectangle = roomInfo.Rectangle,
                 RoomInfo = roomInfo,
                 Orientation = orientation,
-                Type = roomType
+                Type = roomType,                
+                Connection = new RoomConnection()
             };
         }
 
@@ -161,25 +162,23 @@ namespace RoguelikeRoomGeneration.SecondGen
                 // are there any rooms east of us? If so, pick the closest one.
                 var closestHorizontalNeighbor = rooms.OrderBy(x => x.Rectangle.X)
                                                      .FirstOrDefault(x => room.Rectangle.X < x.Rectangle.X &&
-                                                                          (room.Rectangle.Bottom > x.Rectangle.Y + 3));
+                                                                          (room.Rectangle.Bottom + 3 > x.Rectangle.Y));
 
                 if (closestHorizontalNeighbor != null)
                 {
                     Log($"room.X {room.RoomInfo.TopLeft.X} closest horizontal neighbor withn X {closestHorizontalNeighbor.RoomInfo.TopLeft.X}");
                     Log($"room.X {room.RoomInfo.TopLeft.X} corridor vertical differential from room X {closestHorizontalNeighbor.RoomInfo.TopLeft.X} is {Math.Abs(room.RoomInfo.VerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y)}");
 
-                    var distanceToNeighbor = closestHorizontalNeighbor.RoomInfo.TopLeft.X - room.RoomInfo.TopRight.X;
+                    var distanceToNearestHorizontalNeighbor = closestHorizontalNeighbor.RoomInfo.TopLeft.X - room.RoomInfo.TopRight.X;
 
                     if (closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y == room.RoomInfo.VerticalMiddle.Y)
                     {
                         // No need to make a joint in the corridor
-                        corridors.Add(CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNeighbor, 0, Orientation.Horizontal, RoomType.Corridor));
+                        corridors.Add(CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNearestHorizontalNeighbor, 0, Orientation.Horizontal, RoomType.Corridor));
                     }
                     else
                     {
-                        var corrRoom1 = CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor);
-                        corridors.Add(corrRoom1);
-
+                        var corrRoom1 = CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor);
                         var corrJoint = new Rectangle
                         {
                             X = corrRoom1.RoomInfo.TopRight.X,
@@ -191,22 +190,17 @@ namespace RoguelikeRoomGeneration.SecondGen
                         {
                             corrJoint.Y = corrRoom1.RoomInfo.BottomRight.Y;
                             corrJoint.Height = closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y - corrRoom1.RoomInfo.VerticalMiddle.Y;
-                            corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Bottom, distanceToNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
+                            corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Bottom, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
                         }
                         else
                         {
                             corrJoint.Y = closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y;
                             corrJoint.Height = corrRoom1.RoomInfo.VerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y;
-                            corridors.Add(CreateRoomFromRect(corrJoint.X, closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y, distanceToNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
+                            corridors.Add(CreateRoomFromRect(corrJoint.X, closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
                         }
 
-                        corridors.Add(new Room
-                        {
-                            Rectangle = corrJoint,
-                            RoomInfo = GetRoomInfo(corrJoint),
-                            Type = RoomType.Corridor,
-                            Orientation = Orientation.Horizontal
-                        });
+                        corridors.Add(corrRoom1);
+                        rooms.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Y, corrJoint.Width, corrJoint.Height, Orientation.Horizontal, RoomType.Corridor));
                     }
                 }
             }
