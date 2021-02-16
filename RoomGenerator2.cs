@@ -98,8 +98,8 @@ namespace RoguelikeRoomGeneration.SecondGen
                 {
                     dim = GenerateDimension(mapWidth, mapHeight, roomMaxWidth, roomMaxHeight);
                 }
-                while (rooms.Any(room => (!(dim.X > (room.Rectangle.X + room.Rectangle.Width + gap) || (dim.X + dim.Width + gap) < room.Rectangle.X ||
-                                          dim.Y > (room.Rectangle.Y + room.Rectangle.Height + gap) || (dim.Y + dim.Height + gap) < room.Rectangle.Y))));
+                while (rooms.Any(room => (!(dim.X > (room.Rectangle.Right + gap) || (dim.Right + gap) < room.Rectangle.X ||
+                                          dim.Y > (room.Rectangle.Bottom + gap) || (dim.Bottom + gap) < room.Rectangle.Y))));
 
                 Log($"X = {dim.X} | Y = {dim.Y} | Width = {dim.Width} | Height {dim.Height}");
 
@@ -159,7 +159,9 @@ namespace RoguelikeRoomGeneration.SecondGen
 
                 // start with horizontal corridors
                 // are there any rooms east of us? If so, pick the closest one.
-                var closestHorizontalNeighbor = rooms.OrderBy(x => x.Rectangle.X).FirstOrDefault(x => room.Rectangle.X < x.Rectangle.X);
+                var closestHorizontalNeighbor = rooms.OrderBy(x => x.Rectangle.X)
+                                                     .FirstOrDefault(x => room.Rectangle.X < x.Rectangle.X &&
+                                                                          (room.Rectangle.Bottom > x.Rectangle.Y + 3));
 
                 if (closestHorizontalNeighbor != null)
                 {
@@ -171,8 +173,7 @@ namespace RoguelikeRoomGeneration.SecondGen
                     if (closestHorizontalNeighbor.RoomInfo.VerticalMiddle.Y == room.RoomInfo.VerticalMiddle.Y)
                     {
                         // No need to make a joint in the corridor
-                        var corrRoom = CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNeighbor, 0, Orientation.Horizontal, RoomType.Corridor);
-                        corridors.Add(corrRoom);
+                        corridors.Add(CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.VerticalMiddle.Y, distanceToNeighbor, 0, Orientation.Horizontal, RoomType.Corridor));
                     }
                     else
                     {
