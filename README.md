@@ -16,9 +16,11 @@ Sometimes rooms won't have a corridor. I am working to resolve this.
 
 ![Rooms With Corridors](screenshots/rooms-with-corridors.png)
 
+![Rooms With Z Shaped Corridors](screenshots/rooms-with-z-shaped-corridors.png)
+
 ## Author(s)
 
 - Frank Hale &lt;frankhaledevelops@gmail.com&gt;
 - Melinda Hale
 
-15 February 2021
+16 February 2021
