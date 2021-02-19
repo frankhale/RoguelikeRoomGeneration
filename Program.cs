@@ -1,5 +1,5 @@
-﻿using RoguelikeRoomGeneration.FirstGen;
-//using RoguelikeRoomGeneration.SecondGen;
+﻿//using RoguelikeRoomGeneration.FirstGen;
+using RoguelikeRoomGeneration.SecondGen;
 
 namespace RoguelikeRoomGeneration
 {
@@ -7,8 +7,8 @@ namespace RoguelikeRoomGeneration
     {
         static void Main(string[] args)
         {
-            new RoomGenerator1(true);
-            //new RoomGenerator2(true);
+            //new RoomGenerator1(true);
+            new RoomGenerator2(true);
         }
     }
 }

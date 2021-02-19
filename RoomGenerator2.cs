@@ -55,9 +55,9 @@ namespace RoguelikeRoomGeneration.SecondGen
 
     public class RoomGenerator2
     {
-        private const int HEIGHT = 30;
+        private const int HEIGHT = 50;
         private const int WIDTH = 120;
-        private const int NUM_ROOMS = 4;
+        private const int NUM_ROOMS = 6;
         private const int MAX_ROOM_WIDTH = 10;
         private const int MAX_ROOM_HEIGHT = 10;
         private bool DEBUG = false;
@@ -173,44 +173,90 @@ namespace RoguelikeRoomGeneration.SecondGen
                 var closestHorizontalNeighbor = rooms.OrderBy(x => x.Rectangle.X)
                                                      .FirstOrDefault(x => room.Rectangle.X < x.Rectangle.X &&
                                                                           (room.Rectangle.Bottom + 3 > x.Rectangle.Y));
+                var closestVerticalNeighbor = rooms.OrderBy(x => x.Rectangle.Y)
+                                                   .FirstOrDefault(x => room.Rectangle.Y > x.Rectangle.Y &&
+                                                                        (room.Rectangle.Top + 3 > x.Rectangle.Top));
 
-                if (closestHorizontalNeighbor != null)
+                //if (closestHorizontalNeighbor != null)
+                //{
+                //    Log($"room.X {room.RoomInfo.TopLeft.X} closest horizontal neighbor with X {closestHorizontalNeighbor.RoomInfo.TopLeft.X}");
+                //    Log($"room.X {room.RoomInfo.TopLeft.X} corridor vertical differential from room X {closestHorizontalNeighbor.RoomInfo.TopLeft.X} is {Math.Abs(room.RoomInfo.LeftVerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y)}");
+
+                //    var distanceToNearestHorizontalNeighbor = closestHorizontalNeighbor.RoomInfo.TopLeft.X - room.RoomInfo.TopRight.X;
+
+                //    if (closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y == room.RoomInfo.LeftVerticalMiddle.Y)
+                //    {
+                //        // No need to make a joint in the corridor
+                //        corridors.Add(CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor, 0, Orientation.Horizontal, RoomType.Corridor));
+                //    }
+                //    else
+                //    {
+                //        var corrRoom1 = CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor);
+                //        var corrJoint = new Rectangle
+                //        {
+                //            X = corrRoom1.RoomInfo.TopRight.X,
+                //            Width = 0
+                //        };
+
+                //        // Decide which direction on the X axis to start the corridor joint
+                //        if (closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y > room.RoomInfo.LeftVerticalMiddle.Y)
+                //        {
+                //            corrJoint.Y = corrRoom1.RoomInfo.BottomRight.Y;
+                //            corrJoint.Height = closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y - corrRoom1.RoomInfo.LeftVerticalMiddle.Y;
+                //            corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Bottom, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
+                //        }
+                //        else
+                //        {
+                //            corrJoint.Y = closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y;
+                //            corrJoint.Height = corrRoom1.RoomInfo.LeftVerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y;
+                //            corridors.Add(CreateRoomFromRect(corrJoint.X, closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
+                //        }
+
+                //        corridors.Add(corrRoom1);
+                //        corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Y, corrJoint.Width, corrJoint.Height, Orientation.Horizontal, RoomType.Corridor));
+                //    }
+                //}
+                //else
+                
+                if (closestVerticalNeighbor != null)
                 {
-                    Log($"room.X {room.RoomInfo.TopLeft.X} closest horizontal neighbor withn X {closestHorizontalNeighbor.RoomInfo.TopLeft.X}");
-                    Log($"room.X {room.RoomInfo.TopLeft.X} corridor vertical differential from room X {closestHorizontalNeighbor.RoomInfo.TopLeft.X} is {Math.Abs(room.RoomInfo.LeftVerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y)}");
+                    Log($"room.Y {room.RoomInfo.TopLeft.Y} closest horizontal neighbor with X {closestVerticalNeighbor.RoomInfo.TopLeft.Y}");
+                    Log($"room.Y {room.RoomInfo.TopLeft.Y} corridor vertical differential from room X {closestVerticalNeighbor.RoomInfo.BottomHorizontalMiddle.Y} is " +
+                        $"{Math.Abs(room.RoomInfo.TopHorizontalMiddle.Y - closestVerticalNeighbor.RoomInfo.BottomHorizontalMiddle.Y)}");
 
-                    var distanceToNearestHorizontalNeighbor = closestHorizontalNeighbor.RoomInfo.TopLeft.X - room.RoomInfo.TopRight.X;
+                    var distanceToNearestVerticalNeighbor = closestVerticalNeighbor.RoomInfo.BottomHorizontalMiddle.Y - room.RoomInfo.TopHorizontalMiddle.Y;
 
-                    if (closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y == room.RoomInfo.LeftVerticalMiddle.Y)
+                    if (closestVerticalNeighbor.RoomInfo.BottomHorizontalMiddle.Y == room.RoomInfo.TopHorizontalMiddle.Y)
                     {
                         // No need to make a joint in the corridor
-                        corridors.Add(CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor, 0, Orientation.Horizontal, RoomType.Corridor));
+                        corridors.Add(CreateRoomFromRect(room.RoomInfo.BottomHorizontalMiddle.X, room.RoomInfo.BottomHorizontalMiddle.Y, 0, distanceToNearestVerticalNeighbor, Orientation.Horizontal, RoomType.Corridor));
                     }
                     else
-                    {
-                        var corrRoom1 = CreateRoomFromRect(room.RoomInfo.TopRight.X, room.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor);
-                        var corrJoint = new Rectangle
-                        {
-                            X = corrRoom1.RoomInfo.TopRight.X,
-                            Width = 0
-                        };
+                    {                        
+                        //var corrRoom1 = CreateRoomFromRect(room.RoomInfo.BottomHorizontalMiddle.X, room.RoomInfo.BottomHorizontalMiddle.Y,
+                        //    0, distanceToNearestVerticalNeighbor / 2, Orientation.Vertical, RoomType.Corridor);
+                        
+                        //var corrJoint = new Rectangle
+                        //{
+                        //    X = corrRoom1.RoomInfo.TopHorizontalMiddle.X,
+                        //    Height = 0
+                        //};
 
-                        // Decide which direction on the X axis to start the corridor joint
-                        if (closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y > room.RoomInfo.LeftVerticalMiddle.Y)
-                        {
-                            corrJoint.Y = corrRoom1.RoomInfo.BottomRight.Y;
-                            corrJoint.Height = closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y - corrRoom1.RoomInfo.LeftVerticalMiddle.Y;
-                            corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Bottom, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
-                        }
-                        else
-                        {
-                            corrJoint.Y = closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y;
-                            corrJoint.Height = corrRoom1.RoomInfo.LeftVerticalMiddle.Y - closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y;
-                            corridors.Add(CreateRoomFromRect(corrJoint.X, closestHorizontalNeighbor.RoomInfo.LeftVerticalMiddle.Y, distanceToNearestHorizontalNeighbor / 2, 0, Orientation.Horizontal, RoomType.Corridor));
-                        }
+                        //// Decide which direction on the X axis to start the corridor joint
+                        //if (closestVerticalNeighbor.RoomInfo.TopHorizontalMiddle.X > room.RoomInfo.BottomHorizontalMiddle.X)
+                        //{
+                        //    //corrJoint.Y = corrRoom1.RoomInfo.BottomRight.Y;
+                        //    //corrJoint.Width = closestVerticalNeighbor.RoomInfo.TopHorizontalMiddle.X - corrRoom1.RoomInfo.BottomHorizontalMiddle.X;
+                        //    //corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Bottom, distanceToNearestVerticalNeighbor / 2, 0, Orientation.Vertical, RoomType.Corridor));
 
-                        corridors.Add(corrRoom1);
-                        rooms.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Y, corrJoint.Width, corrJoint.Height, Orientation.Horizontal, RoomType.Corridor));
+                            
+                        //    //corridors.Add(CreateRoomFromRect(corrJoint.X, corrJoint.Y, corrJoint.Width, corrJoint.Height, Orientation.Vertical, RoomType.Corridor));
+                        //}
+                        ////else
+                        ////{
+                        ////}
+
+                        //corridors.Add(corrRoom1);
                     }
                 }
             }
